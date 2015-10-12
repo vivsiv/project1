@@ -10,4 +10,4 @@ serverFork: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 clean: 
-	rm -f *.o serverFork	      
+	rm -f *.o serverFork webserver      
