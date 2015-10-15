@@ -12,50 +12,85 @@
 #include <strings.h>
 #include <sys/wait.h> // for the waitpid() system call
 #include <signal.h>	 //signal name macros, and the kill() prototype */
+#include <unistd.h>	
+
+void error(char *msg){
+	perror(msg);
+	exit(1);
+}
+
+
+//Process each child socket
+void process_connection(int sock){
+	int n;
+	char buffer[256];
+
+	bzero(buffer,256);
+
+	//Read from client
+	n = read(sock, buffer, 255);
+
+	if (n < 0){
+		error("ERROR reading from socket");
+	}
+	//Output header
+	printf("Message: %s\n", buffer);
+	//Write data back to client (Part B send a file back)
+	//Parse Request (Part B)
+	n = write(sock, "I got your message", 18);
+}
 
 int main(int argc, char *argv[]){
+	int sockfd, newsockfd, portno, process_id;
+	struct sockaddr_in serv_addr, cli_addr;
+	socklen_t clilen;
+
 	if (argc < 2){
-		//Usage Error
+		error("ERROR, no port provided");
 	}
 
 	// Make a parent server socket
-	// socket()
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0){
+		error("ERROR opening socket");
+	}
 
 	//Get port from user input
-	//int portno = argv[1];
+	portno = atoi(argv[1]);
 
 	//Set server address and port
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
 
 	//Bind socket to address and port
-	//bind()
+	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+		error("ERROR binding socket");
+	}
 
-	//Listen for connections on server socket
-	//listen()
+	listen(sockfd,1);
 
 	//run server forever 
-	while(0){
+	while(1){
 		//Accept incoming connections
-		//accept()
-
+		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+		
 		//Fork off a new process
-		//fork()
+		process_id = fork();
+		if (process_id < 0){
+			error("ERROR on fork");
+		}
 
-		//Do things with the connection
-		//process_connection()
+		if (process_id == 0){
+			close(sockfd);
+			process_connection(newsockfd);
+			exit(0);
+		}
+
+		else {
+			close(newsockfd);
+		}
 	}
 	return 0;
-}
-
-//Process each child socket
-void process_connection(){
-	//Read from client
-	//read()
-
-	//Output header
-	//printf()
-
-	//Parse Request (Part B)
-
-	//Write data back to client (Part B send a file back)
-	//write()
 }

@@ -1,13 +1,13 @@
 CC=gcc
 CFLAGS=-I.
 DEPS = # header file 
-OBJ = serverFork.o
+OBJ = webserver.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-serverFork: $(OBJ)
+webserver: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 clean: 
-	rm -f *.o serverFork webserver      
+	rm -f *.o webserver      
