@@ -20,10 +20,30 @@ void error(char *msg){
 }
 
 
+char* parseHttpRequest(char *request){
+	char prevChar;
+	char currChar = request[0];
+	int charIdx = 0;
+	char fileBuf [20];
+	int bufIdx = 0;
+	while (currChar != 'H'){
+		if (prevChar == '/' || bufIdx != 0){
+			fileBuf[bufIdx] = currChar;
+			bufIdx++;
+		}
+		prevChar = currChar;
+		charIdx++;
+		currChar = request[charIdx];
+	}
+	fileBuf[bufIdx - 1] = '\0';
+	printf("File Requested: %s\n", fileBuf);
+	return fileBuf;
+}
 //Process each child socket
 void process_connection(int sock){
 	int n;
 	char buffer[256];
+	char* fileRequested;
 
 	bzero(buffer,256);
 
@@ -34,10 +54,13 @@ void process_connection(int sock){
 		error("ERROR reading from socket");
 	}
 	//Output header
-	printf("Message: %s\n", buffer);
+	printf("%s\n", buffer);
+
+	fileRequested = parseHttpRequest(buffer);
 	//Write data back to client (Part B send a file back)
 	//Parse Request (Part B)
-	n = write(sock, "I got your message", 18);
+	writeResponse(sock, fileRequested);
+	//n = write(sock, "I got your message", 18);
 }
 
 int main(int argc, char *argv[]){
