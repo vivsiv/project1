@@ -13,6 +13,9 @@
 #include <sys/wait.h> // for the waitpid() system call
 #include <signal.h>	 //signal name macros, and the kill() prototype */
 #include <unistd.h>	
+#include <time.h> // get current time for server response
+#include <sys/stat.h>
+#include <fcntl.h>	
 
 void error(char *msg){
 	perror(msg);
@@ -20,25 +23,76 @@ void error(char *msg){
 }
 
 
-char* parseHttpRequest(char *request){
+void parseHttpRequest(char *request, char* filename){
 	char prevChar;
 	char currChar = request[0];
 	int charIdx = 0;
-	char fileBuf [20];
 	int bufIdx = 0;
 	while (currChar != 'H'){
 		if (prevChar == '/' || bufIdx != 0){
-			fileBuf[bufIdx] = currChar;
+			filename[bufIdx] = currChar;
 			bufIdx++;
 		}
 		prevChar = currChar;
 		charIdx++;
 		currChar = request[charIdx];
 	}
-	fileBuf[bufIdx - 1] = '\0';
-	printf("File Requested: %s\n", fileBuf);
-	return fileBuf;
+	filename[bufIdx - 1] = '\0';
+	printf("File Requested: %s\n", filename);
 }
+
+void writeResponse(int sock, char *filename){
+	write(sock, "HTTP/1.1", 8);
+	printf("HTTP/1.1 ");
+	int filed = open(filename, O_RDONLY);
+	char* statusCode;
+	if (filed < 0){
+		write(sock, "404 FILE NOT FOUND\n", 19);
+		printf("404 FILE NOT FOUND\n");
+	}
+	else {
+		write(sock, "200 OK\n", 7);
+		printf("200 OK\n");
+	}
+
+	write(sock, "Connection: close\n", 18);
+	printf("Connection: close\n");
+
+	write(sock, "Date: ", 6);
+	time_t current_time = time(NULL);
+	char *datetime = ctime(&current_time);
+	write(sock, datetime, strlen(datetime));
+	//write(sock, "\n", 1);
+	printf("Date: %s", datetime);
+
+	write(sock, "Last-Modified: ", 15);
+	// get file info
+	struct stat file_info;
+	stat(filename, &file_info);
+	char *last_modified = ctime(&file_info.st_mtime);
+	write(sock, last_modified, strlen(last_modified));
+	//write(sock, "\n", 1);
+	printf("Last-Modified: %s", last_modified);
+
+	
+	write(sock, "Content-Length: ", 16);
+	char filesize[8];
+	sprintf(filesize, "%lld", file_info.st_size);
+	write(sock, filesize, strlen(filesize));
+	write(sock, "\n", 1);
+	printf("Content-Length: %s\n", filesize);
+
+	write(sock, "Content-Type: text/html\n\n", 25);
+	printf("Content-Type: text/html\n");
+
+	char file_contents[256];
+	int bread;
+	bread = read(filed, file_contents, 255);
+	write(sock, file_contents, strlen(file_contents));
+	write(sock, "\n", 1);
+	printf("Data: %s\n", file_contents);
+}
+
 //Process each child socket
 void process_connection(int sock){
 	int n;
@@ -54,13 +108,15 @@ void process_connection(int sock){
 		error("ERROR reading from socket");
 	}
 	//Output header
-	printf("%s\n", buffer);
+	printf("%s\n\n", buffer);
 
-	fileRequested = parseHttpRequest(buffer);
+	char* filename = malloc(20);
+	parseHttpRequest(buffer, filename);
 	//Write data back to client (Part B send a file back)
 	//Parse Request (Part B)
-	writeResponse(sock, fileRequested);
+	writeResponse(sock, filename);
 	//n = write(sock, "I got your message", 18);
+	free(filename);
 }
 
 int main(int argc, char *argv[]){
@@ -108,6 +164,7 @@ int main(int argc, char *argv[]){
 		if (process_id == 0){
 			close(sockfd);
 			process_connection(newsockfd);
+			close(newsockfd);
 			exit(0);
 		}
 
