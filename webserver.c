@@ -42,7 +42,7 @@ void parseHttpRequest(char *request, char* filename){
 }
 
 void writeResponse(int sock, char *filename){
-	write(sock, "HTTP/1.1", 8);
+	write(sock, "HTTP/1.1 ", 9);
 	printf("HTTP/1.1 ");
 	int filed = open(filename, O_RDONLY);
 	char* statusCode;
