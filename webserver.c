@@ -24,20 +24,6 @@ void error(char *msg){
 
 
 void parseHttpRequest(char *request, char* filename){
-	// char prevChar;
-	// char currChar = request[0];
-	// int charIdx = 0;
-	// int bufIdx = 0;
-	// while (currChar != 'H'){
-	// 	if (prevChar == '/' || bufIdx != 0){
-	// 		filename[bufIdx] = currChar;
-	// 		bufIdx++;
-	// 	}
-	// 	prevChar = currChar;
-	// 	charIdx++;
-	// 	currChar = request[charIdx];
-	// }
-	// filename[bufIdx - 1] = '\0';
 	char* token;
 	token = strtok(request, " ");
 	token = strtok(NULL, " ");
