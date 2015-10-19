@@ -96,7 +96,6 @@ void writeResponse(int sock, char *filename){
 	char content_type[50];
 	getContentType(filename, content_type);
 	write(sock, content_type, strlen(content_type));
-	//write(sock, "Content-Type: text/html\n\n", 25);
 	printf("%s", content_type);
 
 	char file_contents[256];
