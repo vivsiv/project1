@@ -31,6 +31,25 @@ void parseHttpRequest(char *request, char* filename){
 	printf("File Requested: %s\n", filename);
 }
 
+void getContentType(char *filename, char* content_type){
+	char* filetype = strtok(filename, ".");
+	filetype = strtok(NULL, ".");
+	printf("filetype %s\n", filetype);
+	strncpy(content_type, "Content-Type: ", strlen("Content-Type: "));
+	
+	if (!strcmp(filetype,"jpeg") || !strcmp(filetype,"gif")){
+		printf("Type = Image!\n");
+		strcat(content_type, "image/");
+		if (!strcmp(filetype,"jpeg")) strcat(content_type,"jpeg");
+		else strcat(content_type,"gif");
+	}
+	else {
+		printf("Type = Html!\n");
+		strcat(content_type, "text/html");
+	}
+	strcat(content_type,"\n\n");
+}
+
 void writeResponse(int sock, char *filename){
 	write(sock, "HTTP/1.1 ", 9);
 	printf("HTTP/1.1 ");
@@ -74,8 +93,11 @@ void writeResponse(int sock, char *filename){
 	write(sock, "\n", 1);
 	printf("Content-Length: %s\n", filesize);
 
-	write(sock, "Content-Type: text/html\n\n", 25);
-	printf("Content-Type: text/html\n");
+	char content_type[50];
+	getContentType(filename, content_type);
+	write(sock, content_type, strlen(content_type));
+	//write(sock, "Content-Type: text/html\n\n", 25);
+	printf("%s", content_type);
 
 	char file_contents[256];
 	int bread;
