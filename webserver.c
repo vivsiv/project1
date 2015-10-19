@@ -101,9 +101,15 @@ void writeResponse(int sock, char *filename){
 	char file_contents[256];
 	int bread;
 	bread = read(filed, file_contents, 255);
-	write(sock, file_contents, strlen(file_contents));
+	printf("bread %d\n\n", bread);
+	while (bread > 0){
+		write(sock, file_contents, strlen(file_contents));
+		printf("Data: %s\n", file_contents);
+		bzero(file_contents, sizeof(file_contents));
+		bread = read(filed, file_contents, 255);
+		printf("bread %d\n\n", bread);
+	}	
 	write(sock, "\n", 1);
-	printf("Data: %s\n", file_contents);
 }
 
 //Process each child socket
