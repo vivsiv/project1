@@ -17,6 +17,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>	
 
+void sigchld_handler(int s)
+{
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+}
+
 void error(char *msg){
 	perror(msg);
 	exit(1);
@@ -136,6 +141,7 @@ int main(int argc, char *argv[]){
 	int sockfd, newsockfd, portno, process_id;
 	struct sockaddr_in serv_addr, cli_addr;
 	socklen_t clilen;
+	struct sigaction sa;
 
 	if (argc < 2){
 		error("ERROR, no port provided");
@@ -162,6 +168,14 @@ int main(int argc, char *argv[]){
 	}
 
 	listen(sockfd,1);
+
+	sa.sa_handler = sigchld_handler; // reap all dead processes
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+	    perror("sigaction");
+	    exit(1);
+	}
 
 	//run server forever 
 	while(1){
