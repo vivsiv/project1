@@ -15,7 +15,7 @@
 #include <unistd.h>	
 #include <time.h> // get current time for server response
 #include <sys/stat.h>
-#include <fcntl.h>	
+#include <fcntl.h>
 
 void sigchld_handler(int s)
 {
@@ -27,19 +27,18 @@ void error(char *msg){
 	exit(1);
 }
 
-
+//Parses an HTTP Request and grabs the requested file name
 void parseHttpRequest(char *request, char* filename){
 	char* token;
 	token = strtok(request, " ");
 	token = strtok(NULL, " ");
 	strncpy(filename, token + 1, strlen(token) - 1);
-	printf("File Requested: %s\n", filename);
 }
 
+//Parses the file type for its extension and builds the Content-Type response header
 void getContentType(char *filename, char* content_type){
 	char* filetype = strtok(filename, ".");
 	filetype = strtok(NULL, ".");
-	printf("filetype %s\n", filetype);
 	strncpy(content_type, "Content-Type: ", strlen("Content-Type: "));
 	//Currently supports html, jpg, jpeg, and gif extensions
 	if (!strcmp(filetype,"jpeg") || !strcmp(filetype,"jpg") || !strcmp(filetype,"gif")){
@@ -53,11 +52,13 @@ void getContentType(char *filename, char* content_type){
 	strcat(content_type,"\n\n");
 }
 
+//Writes the HTTP Response to the socket and prints it to the command line
 void writeResponse(int sock, char *filename){
 	write(sock, "HTTP/1.1 ", 9);
 	printf("HTTP/1.1 ");
 	int filed = open(filename, O_RDONLY);
 	char* statusCode;
+	//If the file Doesn't exist send a 404 error
 	if (filed < 0){
 		char *file_not_found = "404.html";
 		strncpy(filename, file_not_found, strlen(file_not_found));
@@ -80,7 +81,7 @@ void writeResponse(int sock, char *filename){
 	printf("Date: %s", datetime);
 
 	write(sock, "Last-Modified: ", 15);
-	// get file info
+	// Get the file info
 	struct stat file_info;
 	stat(filename, &file_info);
 	char *last_modified = ctime(&file_info.st_mtime);
@@ -103,18 +104,17 @@ void writeResponse(int sock, char *filename){
 	char file_contents[1024];
 	int bread;
 	bread = read(filed, file_contents, 1023);
-	//printf("bread %d\n\n", bread);
+	//Read the file into the buffer and write the buffer to the socket
+	//until the file is empty
 	while (bread > 0){
 		write(sock, file_contents, bread);
-		printf("Data: %s\n", file_contents);
 		bzero(file_contents, sizeof(file_contents));
 		bread = read(filed, file_contents, 1023);
-		//printf("bread %d\n\n", bread);
 	}	
 	write(sock, "\n", 1);
 }
 
-//Process each child socket
+//Process each connection, write the HTTP request to the command line
 void process_connection(int sock){
 	int n;
 	char buffer[512];
@@ -128,12 +128,12 @@ void process_connection(int sock){
 	if (n < 0){
 		error("ERROR reading from socket");
 	}
-	//Output header
+	//Print http request
 	printf("%s\n\n", buffer);
-
+	//Parse the http request
 	char* filename = malloc(20);
 	parseHttpRequest(buffer, filename);
-	//Write data back to client (Part B send a file back)
+	//Write data back to client
 	writeResponse(sock, filename);
 	free(filename);
 }
@@ -188,14 +188,14 @@ int main(int argc, char *argv[]){
 		if (process_id < 0){
 			error("ERROR on fork");
 		}
-
+		//Close the parent process in child processes
 		if (process_id == 0){
 			close(sockfd);
 			process_connection(newsockfd);
 			close(newsockfd);
 			exit(0);
 		}
-
+		//Close child processes in the parent process
 		else {
 			close(newsockfd);
 		}
