@@ -117,13 +117,13 @@ void writeResponse(int sock, char *filename){
 //Process each child socket
 void process_connection(int sock){
 	int n;
-	char buffer[256];
+	char buffer[512];
 	char* fileRequested;
 
-	bzero(buffer,256);
+	bzero(buffer, 512);
 
 	//Read from client
-	n = read(sock, buffer, 255);
+	n = read(sock, buffer, 511);
 
 	if (n < 0){
 		error("ERROR reading from socket");
