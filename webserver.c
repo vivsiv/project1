@@ -41,10 +41,10 @@ void getContentType(char *filename, char* content_type){
 	filetype = strtok(NULL, ".");
 	printf("filetype %s\n", filetype);
 	strncpy(content_type, "Content-Type: ", strlen("Content-Type: "));
-	
-	if (!strcmp(filetype,"jpeg") || !strcmp(filetype,"gif")){
+	//Currently supports html, jpg, jpeg, and gif extensions
+	if (!strcmp(filetype,"jpeg") || !strcmp(filetype,"jpg") || !strcmp(filetype,"gif")){
 		strcat(content_type, "image/");
-		if (!strcmp(filetype,"jpeg")) strcat(content_type,"jpeg");
+		if (!strcmp(filetype,"jpeg") || !strcmp(filetype,"jpg")) strcat(content_type,"jpeg");
 		else strcat(content_type,"gif");
 	}
 	else {
