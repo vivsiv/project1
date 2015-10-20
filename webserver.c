@@ -59,7 +59,8 @@ void writeResponse(int sock, char *filename){
 	int filed = open(filename, O_RDONLY);
 	char* statusCode;
 	if (filed < 0){
-		strncpy(filename,"404.html",strlen("404.html"));
+		char *file_not_found = "404.html";
+		strncpy(filename, file_not_found, strlen(file_not_found));
 		filed = open(filename, O_RDONLY);
 		write(sock, "404 NOT FOUND\n", 14);
 		printf("404 NOT FOUND\n");
