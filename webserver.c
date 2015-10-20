@@ -94,16 +94,16 @@ void writeResponse(int sock, char *filename){
 	write(sock, content_type, strlen(content_type));
 	printf("%s", content_type);
 
-	char file_contents[256];
+	char file_contents[1024];
 	int bread;
-	bread = read(filed, file_contents, 255);
-	printf("bread %d\n\n", bread);
+	bread = read(filed, file_contents, 1023);
+	//printf("bread %d\n\n", bread);
 	while (bread > 0){
-		write(sock, file_contents, strlen(file_contents));
+		write(sock, file_contents, bread);
 		printf("Data: %s\n", file_contents);
 		bzero(file_contents, sizeof(file_contents));
-		bread = read(filed, file_contents, 255);
-		printf("bread %d\n\n", bread);
+		bread = read(filed, file_contents, 1023);
+		//printf("bread %d\n\n", bread);
 	}	
 	write(sock, "\n", 1);
 }
