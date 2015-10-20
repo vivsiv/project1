@@ -38,13 +38,11 @@ void getContentType(char *filename, char* content_type){
 	strncpy(content_type, "Content-Type: ", strlen("Content-Type: "));
 	
 	if (!strcmp(filetype,"jpeg") || !strcmp(filetype,"gif")){
-		printf("Type = Image!\n");
 		strcat(content_type, "image/");
 		if (!strcmp(filetype,"jpeg")) strcat(content_type,"jpeg");
 		else strcat(content_type,"gif");
 	}
 	else {
-		printf("Type = Html!\n");
 		strcat(content_type, "text/html");
 	}
 	strcat(content_type,"\n\n");
@@ -73,7 +71,6 @@ void writeResponse(int sock, char *filename){
 	time_t current_time = time(NULL);
 	char *datetime = ctime(&current_time);
 	write(sock, datetime, strlen(datetime));
-	//write(sock, "\n", 1);
 	printf("Date: %s", datetime);
 
 	write(sock, "Last-Modified: ", 15);
@@ -82,7 +79,6 @@ void writeResponse(int sock, char *filename){
 	stat(filename, &file_info);
 	char *last_modified = ctime(&file_info.st_mtime);
 	write(sock, last_modified, strlen(last_modified));
-	//write(sock, "\n", 1);
 	printf("Last-Modified: %s", last_modified);
 
 	
@@ -132,9 +128,7 @@ void process_connection(int sock){
 	char* filename = malloc(20);
 	parseHttpRequest(buffer, filename);
 	//Write data back to client (Part B send a file back)
-	//Parse Request (Part B)
 	writeResponse(sock, filename);
-	//n = write(sock, "I got your message", 18);
 	free(filename);
 }
 
