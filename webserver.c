@@ -92,7 +92,7 @@ void writeResponse(int sock, char *filename){
 	
 	write(sock, "Content-Length: ", 16);
 	char filesize[8];
-	sprintf(filesize, "%lld", file_info.st_size);
+	sprintf(filesize, "%lld", (long long int)file_info.st_size);
 	write(sock, filesize, strlen(filesize));
 	write(sock, "\n", 1);
 	printf("Content-Length: %s\n", filesize);
