@@ -16,6 +16,7 @@
 #include <time.h> // get current time for server response
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 
 void sigchld_handler(int s)
 {
